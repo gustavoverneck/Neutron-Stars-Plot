@@ -55,6 +55,8 @@ class LSV_Data:
         self.input_folder = 'input'
         self.data_folder = 'data'
 
+        self.data = []
+
     def importLists(self):
         # Import models list
         with open(f'{self.input_folder}/{self.model_list}') as f:
@@ -73,31 +75,49 @@ class LSV_Data:
 
     def getData(self):
         for model in self.model_list:
-            if os.path.exists(model):
+            if os.path.exists(f"{self.data_folder}/{model}"):
                 for B in self.B_list:
-                    if os.path.exists(B):
+                    if os.path.exists(f"{self.data_folder}/{model}/{B}"):
                         for csi in self.csi_list:
-                            if os.path.exists(csi):
-                                with open(f"{self.data_folder}/{model}/{B}/tov_{csi}.out") as f:
+                            if os.path.exists(f"{self.data_folder}/{model}/{B}/{csi}/tov_{csi}.out"):
+                                with open(f"{self.data_folder}/{model}/{B}/{csi}/tov_{csi}.out") as f:
+                                    model_=model; B_=B; csi_=csi;
+                                    e_=[]; p_=[]; M_=[]; R_=[]
                                     for line in f.splitlines():
-                                        pass
-                                    # Need to create a class to the data and then import it properly
+                                        line = line.split()
+                                        e_.append(float(line[0]))
+                                        p_.append(float(line[1]))
+                                        M_.append(float(line[2]))
+                                        R_.append(float(line[3]))
+                                    data_ = subData(model=model_, B=B_, csi=csi_, e=e_, p=p_, M=M_, R=R_)
+                                    self.data.append(data_)
                                 log(f"Data sucessfully imported for {model}/{B}/tov_{csi}.out")
                             else:
-                                log(f"File {model}/{B}/{csi} doesn't exists. Skipping.")
+                                log(f"Data for {model}/{B}/{csi} doesn't exists. Skipping.")
             else:
                 log(f"Model '{model}' doesn't exists. Skipping.")
-                                
+        log("All data imported.")
+        del e_, p_, M_, R_, model_, B_, csi_
+    
+    def plotData(self):
+        pass   # Plot data
    
 
-class Data:
-    def __init__(self, filename):
-        pass
-
+class subData:
+    def __init__(self, model, B, csi, e, p, M, R):
+        self.model = model
+        self.B = B
+        self.csi = csi
+        self.e = e
+        self.p = p
+        self.M = M
+        self.R = R
+    
+    def __str__(self):
+        return f"Model: {self.model}, B: {self.B}, csi: {self.csi}"
           
 def main():
-    setup() # Verify/creates folders and starts the log
-    #-----------------------------------------
+    setup() # Verify and creates folders and starts the log
     data = LSV_Data()
 
 if __name__ == '__main__':
